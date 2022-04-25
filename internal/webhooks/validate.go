@@ -65,10 +65,12 @@ func validateAddonImmutability(addon, oldAddon *addonsv1alpha1.Addon) error {
 	if oldSpecInstall.OLMAllNamespaces != nil {
 		oldSpecInstall.OLMAllNamespaces.CatalogSourceImage = ""
 		oldSpecInstall.OLMAllNamespaces.Config = nil
+		oldSpecInstall.OLMAllNamespaces.AdditionalCatalogSources = nil
 	}
 	if oldSpecInstall.OLMOwnNamespace != nil {
 		oldSpecInstall.OLMOwnNamespace.CatalogSourceImage = ""
 		oldSpecInstall.OLMOwnNamespace.Config = nil
+		oldSpecInstall.OLMOwnNamespace.AdditionalCatalogSources = nil
 	}
 
 	specInstall := addon.Spec.Install.DeepCopy()
