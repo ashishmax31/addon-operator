@@ -229,7 +229,15 @@ func (r *AddonReconciler) Reconcile(
 		return r.handleExit(requeueResult), nil
 	}
 
-	// Phase 5.
+	// Phase 5
+	// Ensure additional catalog sources
+	if requeueResult, err := r.ensureAdditionalCatalogSources(ctx, log, addon); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to ensure additional catalog source: %w", err)
+	} else if requeueResult != resultNil {
+		return r.handleExit(requeueResult), nil
+	}
+
+	// Phase 6.
 	var (
 		catalogSource *operatorsv1alpha1.CatalogSource
 		requeueResult requeueResult
@@ -240,7 +248,7 @@ func (r *AddonReconciler) Reconcile(
 		return r.handleExit(requeueResult), nil
 	}
 
-	// Phase 6.
+	// Phase 7.
 	// Ensure Subscription for this Addon.
 	requeueResult, currentCSVKey, err := r.ensureSubscription(
 		ctx, log.WithName("phase-ensure-subscription"),
@@ -251,7 +259,7 @@ func (r *AddonReconciler) Reconcile(
 		return r.handleExit(requeueResult), nil
 	}
 
-	// Phase 7.
+	// Phase 8.
 	// Observe current csv
 	if requeueResult, err := r.observeCurrentCSV(ctx, addon, currentCSVKey); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to observe current CSV: %w", err)
@@ -259,7 +267,7 @@ func (r *AddonReconciler) Reconcile(
 		return r.handleExit(requeueResult), nil
 	}
 
-	// Phase 8.
+	// Phase 9.
 	// Possibly ensure monitoring federation
 	// Normally this would be configured before the addon workload is installed
 	// but currently the addon workload creates the monitoring stack by itself
@@ -273,7 +281,7 @@ func (r *AddonReconciler) Reconcile(
 		return ctrl.Result{}, fmt.Errorf("failed to ensure ServiceMonitor: %w", err)
 	}
 
-	// Phase 9.
+	// Phase 10.
 	// Remove possibly unwanted monitoring federation
 	if err := r.ensureDeletionOfUnwantedMonitoringFederation(ctx, addon); err != nil {
 		return ctrl.Result{}, fmt.Errorf("failed to ensure deletion of unwanted ServiceMonitors: %w", err)
